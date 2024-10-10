@@ -17,7 +17,7 @@ import javax.inject.Inject
 class RewardViewModel @Inject constructor(private val rewardRepository: RewardRepository) :
     ViewModel() {
 
-    private val _uiState = MutableStateFlow(RewardUiState())
+    private val _uiState = MutableStateFlow<RewardUiState>(RewardUiState.Loading)
     val uiState: StateFlow<RewardUiState> = _uiState.asStateFlow()
 
     init {
@@ -30,16 +30,17 @@ class RewardViewModel @Inject constructor(private val rewardRepository: RewardRe
             try {
                 Log.d("RewardViewModel", "getRewards")
                 val rewards = rewardRepository.getRewardsForDisplay()
-                _uiState.value = _uiState.value.copy(rewards = rewards)
+                _uiState.value = RewardUiState.Success(rewards = rewards)
             } catch (ex: Exception) {
                 Log.e("RewardViewModel", "getRewards", ex)
-                _uiState.value = _uiState.value.copy(isError = true)
+                _uiState.value = RewardUiState.Error(error = ex.message)
             }
         }
     }
 }
 
-data class RewardUiState(
-    val rewards: List<Reward> = emptyList(),
-    val isError: Boolean = false
-)
+sealed interface RewardUiState {
+    data class Success(val rewards: List<Reward> = emptyList()) : RewardUiState
+    data class Error(val error: String?) : RewardUiState
+    data object Loading : RewardUiState
+}

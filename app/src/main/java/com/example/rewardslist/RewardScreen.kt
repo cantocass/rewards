@@ -26,7 +26,7 @@ import com.example.rewardslist.ui.theme.RewardsListTheme
 fun previewRewardScreen() {
     val rewards =
         listOf(Reward(123, 1, "Item 123"), Reward(456, 2, "Item 456"), Reward(789, 3, "Item 789"))
-    val state = RewardUiState(rewards = rewards, isError = false)
+    val state = RewardUiState.Success(rewards = rewards)
     RewardsListTheme {
         RewardScreen(modifier = Modifier, state = state)
 
@@ -35,24 +35,32 @@ fun previewRewardScreen() {
 
 @Composable
 fun RewardScreen(modifier: Modifier, state: RewardUiState) {
-    when {
-        state.isError -> ErrorScreen(modifier, state)
-        else -> RewardScreenContent(modifier, state)
+    when (state) {
+        is RewardUiState.Success -> {
+            RewardScreenContent(modifier, state.rewards)
+        }
+        is RewardUiState.Loading -> {
+            //LoadingScreen()
+        }
+        is RewardUiState.Error -> {
+            ErrorScreen(modifier)
+        }
+
     }
 }
 
 @Composable
-fun ErrorScreen(modifier: Modifier = Modifier, state: RewardUiState) {
-    Text("Error: Rewards List has size of ${state.rewards.size}")
+fun ErrorScreen(modifier: Modifier = Modifier) {
+    Text("Error: Rewards List has size of}")
 }
 
 @Composable
-private fun RewardScreenContent(modifier: Modifier = Modifier, state: RewardUiState) {
+private fun RewardScreenContent(modifier: Modifier = Modifier, rewards: List<Reward>) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
     ) {
         itemsIndexed(
-            items = state.rewards,
+            items = rewards,
             key = { _, item -> item.id },
         ) { index, reward ->
             Spacer(modifier = Modifier.padding(4.dp))
